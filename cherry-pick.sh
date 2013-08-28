@@ -17,8 +17,16 @@ if [ -f "/home/gmillz/bin/cherry-picks" ]; then
         if [ "$line" = "" ]; then continue; fi;
         DIR="$PWD"
         PAC=$(echo "$line" | cut -d'/' -f5 | cut -d' ' -f1)
-        PACK=$(echo "$line" | cut -d'/' -f5 | cut -d' ' -f1 | tr "_" "/")
-        CHANGE=$(echo "$line" | awk '{print $4;}')     
+        if [[ $(echo "$PAC" | cut -d'_' -f1) == "android" ]]; then
+            PACK=$(echo "$PAC" | cut -d'_' -f2 | cut -d' ' -f1 | tr "_" "/")
+        elif [[ $(echo "$PAC" | cut -d'_' -f1) == "platform" ]]; then
+            PACK=$(echo "$PAC" | cut -d' ' -f1 | cu -d'_' -f2 | tr "_" "/")
+        elif [ "$PAC" = "platform_manifest" ]; then
+            PACK="$PAC"
+        else
+            PACK=$(echo "$line" | cut -d'/' -f5 | cut -d' ' -f1 | tr "_" "/")
+        fi
+        CHANGE=$(echo "$line" | awk '{print $4;}')
         if [[ $(changeExists) == "true" ]]; then
             continue
         fi
