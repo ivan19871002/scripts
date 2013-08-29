@@ -40,11 +40,11 @@ if [ -f "/home/gmillz/bin/cherry-picks" ]; then
             fi
         fi
         if [ "$TYPE" = "cherry-pick" ]; then
-            git fetch ssh://gmillz@grapefruit.slimroms.net:29299/SlimRoms/"$PAC" "$CHANGE" && git cherry-pick FETCH_HEAD
+            echo "git fetch ssh://gmillz@grapefruit.slimroms.net:29299/SlimRoms/"$PAC" "$CHANGE" && git cherry-pick FETCH_HEAD"
         elif [ "$TYPE" = "checkout" ]; then
-            git fetch ssh://gmillz@grapefruit.slimroms.net:29299/SlimRoms/"$PAC" "$CHANGE" && git checkout FETCH_HEAD
+            echo "git fetch ssh://gmillz@grapefruit.slimroms.net:29299/SlimRoms/"$PAC" "$CHANGE" && git checkout FETCH_HEAD"
         elif [ "$TYPE" = "pull" ]; then
-            git pull ssh://grills a grapefruit.slimroms.net:29299/SlimRoms/"$PAC" "$CHANGE"
+            echo "git pull ssh://gmillz@grapefruit.slimroms.net:29299/SlimRoms/"$PAC" "$CHANGE""
         fi
         cd "$DIR"
         CHANGES=("${CHANGES[@]}" "$CHANGE")
