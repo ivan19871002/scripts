@@ -62,74 +62,62 @@ shopt -s nullglob #Bash allows filename patterns which match no files to expand 
 shopt -s dotglob  #Bash includes filenames beginning with a ‘.’ in the results of filename expansion
 
 #Check the shell
-if [ -z "$BASH_VERSION" ]; then
-    echo -e "Error: this script requires the BASH shell!"
-    exit 1
+if [ -z "$BASH_VERSION" ]
+then
+  echo -e "Error: this script requires the BASH shell!"
+  exit 1
 fi
 
 #Look for optional config file parameter
-while getopts ":qpkdf:" opt; do
-    case $opt in
-
-    f)
-      CONFIG_FILE=$OPTARG
-    ;;
-
-    d)
-      DEBUG=1
-    ;;
-
-    q)
-      QUIET=1
-    ;;
-
-    p)
-      SHOW_PROGRESSBAR=1
-    ;;
-
-    k)
-      CURL_ACCEPT_CERTIFICATES="-k"
-    ;;
-
+while getopts ":qpkdf:" opt
+do
+  case "${opt}"
+  in
+    f)  CONFIG_FILE=$OPTARG;;
+    d)  DEBUG=1;;
+    q)  QUIET=1;;
+    p)  SHOW_PROGRESSBAR=1;;
+    k)  CURL_ACCEPT_CERTIFICATES="-k";;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
-    ;;
-
+      ;;
     :)
       echo "Option -$OPTARG requires an argument." >&2
       exit 1
-    ;;
-
+      ;;
   esac
 done
 
-if [ $DEBUG -ne 0 ]; then
-    set -x
-    RESPONSE_FILE="$TMP_DIR/du_resp_debug"
+if [ $DEBUG -ne 0 ]
+then
+  set -x
+  RESPONSE_FILE="$TMP_DIR/du_resp_debug"
 fi
 
 #Print the message based on $QUIET variable
 function print
 {
-    if [ $QUIET -eq 0 ]; then
-	    echo -ne "$1";
-    fi
+  if [ $QUIET -eq 0 ]
+  then
+    echo -ne "$1";
+  fi
 }
 
 #Returns unix timestamp
 function utime
 {
-    echo $(date +%s)
+  echo $(date +%s)
 }
 
 #Remove temporary files
 function remove_temp_files
 {
-    if [ $DEBUG -eq 0 ]; then
-        rm -fr "$RESPONSE_FILE"
-        rm -fr "$CHUNK_FILE"
-    fi
+  if [ $DEBUG -eq 0 ]
+  then
+    rm -fr "$RESPONSE_FILE"
+    rm -fr "$CHUNK_FILE"
+  fi
 }
 
 #Returns the file size in bytes
@@ -142,126 +130,122 @@ function remove_temp_files
 # iOS:               darwin9
 function file_size
 {
-    #Some embedded linux devices
-    if [ "$OSTYPE" == "linux-gnueabi" -o "$OSTYPE" == "linux-gnu" ]; then
-        stat -c "%s" "$1"
-        return
-
-    #Generic Unix
-    elif [ "${OSTYPE:0:5}" == "linux" -o "$OSTYPE" == "cygwin" -o "${OSTYPE:0:7}" == "solaris" -o "${OSTYPE}" == "darwin9" ]; then
-        stat --format="%s" "$1"
-        return
-
-    #BSD or others OS
-    else
-        stat -f "%z" "$1"
-        return
-    fi
+  #Some embedded linux devices
+  if [ "$OSTYPE" == "linux-gnueabi" -o "$OSTYPE" == "linux-gnu" ]
+  then
+    stat -c "%s" "$1"
+    return
+  #Generic Unix
+  elif [ "${OSTYPE:0:5}" == "linux" -o "$OSTYPE" == "cygwin" -o "${OSTYPE:0:7}" == "solaris" -o "${OSTYPE}" == "darwin9" ]; then
+    stat --format="%s" "$1"
+    return
+  #BSD or others OS
+  else
+    stat -f "%z" "$1"
+    return
+  fi
 }
 
 #Usage
 function usage
 {
-    echo -e "Dropbox Uploader v$VERSION"
-    echo -e "Andrea Fabrizi - andrea.fabrizi@gmail.com\n"
-    echo -e "Usage: $0 COMMAND [PARAMETERS]..."
-    echo -e "\nCommands:"
+  echo -e "Dropbox Uploader v$VERSION"
+  echo -e "Andrea Fabrizi - andrea.fabrizi@gmail.com\n"
+  echo -e "Usage: $0 COMMAND [PARAMETERS]..."
+  echo -e "\nCommands:"
 
-    echo -e "\t upload   [LOCAL_FILE/DIR]  <REMOTE_FILE/DIR>"
-    echo -e "\t download [REMOTE_FILE/DIR] <LOCAL_FILE/DIR>"
-    echo -e "\t delete   [REMOTE_FILE/DIR]"
-    echo -e "\t move     [REMOTE_FILE/DIR] [REMOTE_FILE/DIR]"
-    echo -e "\t mkdir    [REMOTE_DIR]"
-    echo -e "\t list     <REMOTE_DIR>"
-    echo -e "\t share    [REMOTE_FILE]"
-    echo -e "\t clean    [REMOTE_DIR]"
-    echo -e "\t info"
-    echo -e "\t unlink"
+  echo -e "\t upload   [LOCAL_FILE/DIR]  <REMOTE_FILE/DIR>"
+  echo -e "\t download [REMOTE_FILE/DIR] <LOCAL_FILE/DIR>"
+  echo -e "\t delete   [REMOTE_FILE/DIR]"
+  echo -e "\t move     [REMOTE_FILE/DIR] [REMOTE_FILE/DIR]"
+  echo -e "\t mkdir    [REMOTE_DIR]"
+  echo -e "\t list     <REMOTE_DIR>"
+  echo -e "\t share    [REMOTE_FILE]"
+  echo -e "\t clean    [REMOTE_DIR]"
+  echo -e "\t info"
+  echo -e "\t unlink"
 
-    echo -e "\nOptional parameters:"
-    echo -e "\t-f [FILENAME] Load the configuration file from a specific file"
-    echo -e "\t-d            Enable DEBUG mode"
-    echo -e "\t-q            Quiet mode. Don't show messages"
-    echo -e "\t-p            Show cURL progress meter"
-    echo -e "\t-k            Doesn't check for SSL certificates (insecure)"
+  echo -e "\nOptional parameters:"
+  echo -e "\t-f [FILENAME] Load the configuration file from a specific file"
+  echo -e "\t-d            Enable DEBUG mode"
+  echo -e "\t-q            Quiet mode. Don't show messages"
+  echo -e "\t-p            Show cURL progress meter"
+  echo -e "\t-k            Doesn't check for SSL certificates (insecure)"
 
-    echo -en "\nFor more info and examples, please see the README file.\n\n"
-    remove_temp_files
-    exit 1
+  echo -en "\nFor more info and examples, please see the README file.\n\n"
+  remove_temp_files
+  exit 1
 }
 
 #Check the curl exit code
 function check_curl_status
 {
-    CODE=$?
+  CODE=$?
 
-    case $CODE in
-
-        #OK
-        0)
-            return
-        ;;
-
-        #Proxy error
-        5)
-            echo ""
-            echo "Error: Couldn't resolve proxy. The given proxy host could not be resolved."
-
-            remove_temp_files
-            exit 1
-        ;;
-
-        #Missing CA certificates
-        60|58)
-            echo ""
-            echo "Error: cURL is not able to performs peer SSL certificate verification."
-            echo "Please, install the default ca-certificates bundle."
-            echo "To do this in a Debian/Ubuntu based system, try:"
-            echo "  sudo apt-get install ca-certificates"
-            echo ""
-            echo "If the problem persists, try to use the -k option (insecure)."
-            echo ""
-
-            remove_temp_files
-            exit 1
-        ;;
-    esac
+  case "${CODE}"
+  in
+    #OK
+    0) return;;
+    #Proxy error
+    5)
+      echo ""
+      echo "Error: Couldn't resolve proxy. The given proxy host could not be resolved."
+      remove_temp_files
+      exit 1
+      ;;
+    #Missing CA certificates
+    60|58)
+      echo ""
+      echo "Error: cURL is not able to performs peer SSL certificate verification."
+      echo "Please, install the default ca-certificates bundle."
+      echo "To do this in a Debian/Ubuntu based system, try:"
+      echo "  sudo apt-get install ca-certificates"
+      echo ""
+      echo "If the problem persists, try to use the -k option (insecure)."
+      echo ""
+      remove_temp_files
+      exit 1
+      ;;
+  esac
 }
 
-if [ -z "$CURL_BIN" ]; then
-    BIN_DEPS="$BIN_DEPS curl"
-    CURL_BIN="curl"
+if [ -z "$CURL_BIN" ]
+then
+  BIN_DEPS="$BIN_DEPS curl"
+  CURL_BIN="curl"
 fi
 
 #Dependencies check
 which $BIN_DEPS > /dev/null
-if [ $? -ne 0 ]; then
-    for i in $BIN_DEPS; do
-        which $i > /dev/null ||
-            NOT_FOUND="$i $NOT_FOUND"
-    done
-    echo -e "Error: Required program could not be found: $NOT_FOUND"
-    remove_temp_files
-    exit 1
+if [ $? -ne 0 ]
+then
+  for i in $BIN_DEPS
+  do
+    which $i > /dev/null ||
+      NOT_FOUND="$i $NOT_FOUND"
+  done
+  echo -e "Error: Required program could not be found: $NOT_FOUND"
+  remove_temp_files
+  exit 1
 fi
 
 #Urlencode
 function urlencode
 {
-    local string="${1}"
-    local strlen=${#string}
-    local encoded=""
+  local string="${1}"
+  local strlen=${#string}
+  local encoded=""
 
-    for (( pos=0 ; pos<strlen ; pos++ )); do
-        c=${string:$pos:1}
-        case "$c" in
-            [-_.~a-zA-Z0-9] ) o="${c}" ;;
-            * )               printf -v o '%%%02x' "'$c"
-        esac
-        encoded+="${o}"
-    done
-
-    echo "$encoded"
+  for (( pos=0 ; pos<strlen ; pos++ ))
+  do
+    c=${string:$pos:1}
+    case "$c" in
+      [-_.~a-zA-Z0-9] ) o="${c}" ;;
+      * )               printf -v o '%%%02x' "'$c"
+    esac
+    encoded+="${o}"
+  done
+  echo "$encoded"
 }
 
 #Check if it's a file or directory
@@ -1085,7 +1069,7 @@ case $COMMAND in
 
     ;;
 
-    list)
+    clean)
 
         DIR_DST=$ARG1
 
