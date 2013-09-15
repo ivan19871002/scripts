@@ -10,6 +10,23 @@ function check_result {
   fi
 }
 
+if [ ! -f "~/bin/remove-old-logs.sh" ]
+then
+  curl https://raw.github.com/gmillz/scripts/master/remove-old-logs.sh > ~/bin/remove-old-logs.sh
+fi
+if [ ! -f "~/bin/cherry-pick.sh" ]
+then
+  curl https://raw.github.com/gmillz/scripts/master/cherry-pick.sh > ~/bin/cherry-pick.sh
+fi
+if [ "$UPLOADER" = "dropbox" || ! -f "~/bin/dropbox_uploader.sh" ]
+then
+  curl https://raw.github.com/gmillz/scripts/master/dropbox_uploader.sh > ~/bin/dropbox_uploader.sh
+fi
+if [ "$UPLOADER" = "goo" || ! -f "~/bin/upload-goo.sh" ]
+then
+  curl https://raw.github.com/gmillz/scripts/master/upload-goo.sh > ~/bin/upload-goo.sh
+fi
+
 ~/bin/remove-old-logs.sh
 
 if [ -f "/home/gmillz/bin/bgbuild-config" ]
