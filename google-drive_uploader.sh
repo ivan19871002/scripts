@@ -31,7 +31,15 @@ curl -v --data-urlencode Email="$EMAIL" --data-urlencode Passwd="$PASS" -d accou
 
 TOKEN=`cat /tmp/login.txt | grep Auth | cut -d \= -f 2`
 
-UPLOADLINK=`curl -Sv -k --request POST -H "Content-Length: 0" -H "Authorization: GoogleLogin auth=${TOKEN}" -H "GData-Version: 3.0" -H "Content-Type: $MIME_TYPE" \
-	-H "Slug: $FILE" "https://docs.google.com/feeds/upload/create-session/default/private/full?convert=false" -D /dev/stdout | grep "Location:" | sed s/"Location: "//`
+UPLOADLINK=$(curl -Sv -k --request POST -H "Content-Length: 0" -H "Authorization: GoogleLogin auth=${TOKEN}" -H "GData-Version: 3.0" -H "Content-Type: $MIME_TYPE" \
+	-H "Slug: $FILE" "https://docs.google.com/feeds/upload/create-session/default/private/full?convert=false" -D /dev/stdout | grep "Location:" | sed s/"Location: "//)
 
 curl -Sv -k --request POST --data-binary "@$FILE" -H "Authorization: GoogleLogin auth=${TOKEN}" -H "GData-Version: 3.0" -H "Content-Type: $MIME_TYPE" -H "Slug: $FILE" "$UPLOADLINK" > /tmp/goolog.upload.txt
+
+L=$(cat /tmp/goolog.upload.txt | cut -d'<' -f4 | cut -d'>' -f2 | cut -d'A' -f2)
+LINK="https://docs.google.com/file/d/$L"
+
+rm /tmp/login.txt
+rm /tmp/goolog.upload.txt
+
+echo "$LINK"

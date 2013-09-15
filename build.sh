@@ -281,6 +281,10 @@ then
   dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "slim/$DEVICE/$MODVERSION.zip.md5sum"
   LINK=$(dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip")
   MD5LINK=$(dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip.md5sum")
+elif [ "$UPLOADER" = "drive" ]
+then
+  LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip")
+  MD5LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
 elif [ "$UPLOADER" = "flo-nightly" ]
 then
   # Server details
