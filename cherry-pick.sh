@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function changeExists() {
+function changeExists {
   for change in "${CHANGES[@]}"
   do
     if [ "$change" = "$CHANGE" ]

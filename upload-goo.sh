@@ -4,7 +4,7 @@ COMMAND=$1
 ARG1=$2
 ARG2=$3
 
-function goo-upload() {
+function goo-upload {
   FILE="$1"
   FOLDER="$2"
   echo "
@@ -14,7 +14,7 @@ function goo-upload() {
   " | sftp gmillz@upload.goo.im
 }
 
-function goo-download() {
+function goo-download {
   SRC="$1"
   DST="$2"
 
@@ -29,7 +29,7 @@ function goo-download() {
   " | sftp gmillz@upload.goo.im
 }
 
-function goo-delete() {
+function goo-delete {
   FILE="$1"
 
   if [[ "$FILE" != *"public_html"* ]]
@@ -43,7 +43,7 @@ function goo-delete() {
   " | sftp gmillz@upload.goo.im
 }
 
-function goo-move() {
+function goo-move {
   SRC="$1"
   DST="$2"
 
@@ -62,7 +62,7 @@ function goo-move() {
   " | sftp gmillz@upload.goo.im
 }
 
-function goo-mkdir() {
+function goo-mkdir {
   DIR="$1"
 
   if [[ "$DIR" != *"public_html"* ]]
@@ -76,7 +76,7 @@ function goo-mkdir() {
   " | sftp gmillz@upload.goo.im
 }
 
-function goo-list() {
+function goo-list {
   DIR="$1"
   for line in $(echo "
     ls $DIR
@@ -100,13 +100,13 @@ function goo-list() {
   done
 }
 
-function goo-link() {
+function goo-link {
   FILE="$1"
   LINK="http://goo.im/devs/gmillz/$FILE"
   echo "$LINK"
 }
 
-function goo-help() {
+function goo-help {
   echo "Goo upload script!"
   echo "Usage: upload-goo.sh COMMAND [PARAMETERS]"
   echo -e '\nCommands:'
