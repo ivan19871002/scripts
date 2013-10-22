@@ -10,13 +10,13 @@ function check_result {
   fi
 }
 
-chmod a+x $HOME/scripts/remove-old-logs.sh
-$HOME/scripts/remove-old-logs.sh
+#chmod a+x "$WORKSPACE"/remove-old-logs.sh
+#. "$WORKSPACE"/remove-old-logs.sh
 
-if [ -f $HOME/scripts/bgbuild-config ]
+if [ -f $HOME/scripts/build-config ]
 then
   echo CONFIG found
-  source $HOME/scripts/bgbuild-config
+  source $HOME/scripts/build-config
 else
   echo CONFIG not found exiting
   exit 1
