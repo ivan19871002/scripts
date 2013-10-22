@@ -10,15 +10,19 @@ function check_result {
   fi
 }
 
-chmod a+x ~/scripts/remove-old-logs.sh
-~/scripts/remove-old-logs.sh
+chmod a+x $HOME/scripts/remove-old-logs.sh
+$HOME/scripts/remove-old-logs.sh
 
-if [ -f ~/scripts/bgbuild-config ]
+if [ -f $HOME/scripts/bgbuild-config ]
 then
-  source ~/scripts/bgbuild-config
+  echo CONFIG found
+  source $HOME/scripts/bgbuild-config
+else
+  echo CONFIG not found exiting
+  exit 1
 fi
 
-SOURCE=~/"$BRANCH"
+SOURCE="$HOME/$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
   mkdir -p "$SOURCE"
@@ -26,9 +30,9 @@ then
 fi
 cd "$SOURCE"
 
-if [ ! -d ~/logs ]
+if [ ! -d $HOME/logs ]
 then
-  mkdir -p ~/logs
+  mkdir -p $HOME/logs
 fi
 
 if [ -z "$UPLOADER" ]
@@ -148,14 +152,14 @@ if [ "$SYNC" = "true" ]
 then
   repo sync
 fi
-if [ "$CHERRY_PICK" = "true" || -f ~/scripts/cherry-pick.sh ]
+if [ "$CHERRY_PICK" = "true" || -f $HOME/scripts/cherry-pick.sh ]
 then
-  chmod a+x ~/scripts/cherry-pick.sh
-  . ~/scripts/cherry-pick.sh
+  chmod a+x $HOME/scripts/cherry-pick.sh
+  . $HOME/scripts/cherry-pick.sh
 fi
 
 rm -f "$WORKSPACE"/changecount
-WORKSPACE="$WORKSPACE" LUNCH="$LUNCH" bash ~/scripts/buildlog.sh 2>&1
+WORKSPACE="$WORKSPACE" LUNCH="$LUNCH" bash $HOME/scripts/buildlog.sh 2>&1
 if [ -f "$WORKSPACE/changecount" ]
 then
   CHANGE_COUNT=$(cat "$WORKSPACE/changecount")
@@ -329,5 +333,5 @@ done
 
 if [ "$UPLOADER" != "none" ]
 then
-  sed -i "s/UPLOADER=$UPLOADER/UPLOADER=none/g" ~/scripts/bgbuild-config
+  sed -i "s/UPLOADER=$UPLOADER/UPLOADER=none/g" $HOME/scripts/bgbuild-config
 fi
