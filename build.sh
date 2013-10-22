@@ -13,15 +13,6 @@ function check_result {
 #chmod a+x "$WORKSPACE"/remove-old-logs.sh
 #. "$WORKSPACE"/remove-old-logs.sh
 
-if [ -f $HOME/scripts/build-config ]
-then
-  echo CONFIG found
-  source $HOME/scripts/build-config
-else
-  echo CONFIG not found exiting
-  exit 1
-fi
-
 SOURCE="$HOME/$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
@@ -30,30 +21,23 @@ then
 fi
 cd "$SOURCE"
 
-if [ ! -d $HOME/logs ]
+if [ -z "$LUNCH" ]
 then
-  mkdir -p $HOME/logs
-fi
-
-if [ -z "$UPLOADER" ]
-then
-  echo "UPLOAD not specified, not uploading."
-fi
-if [ -z "$JOBS" ]
-then
-  JOBS="4"
-fi
-if [ -z "$DEVICE" ]
-then
-  echo "DEVICE not specified, exiting."
+  echo "LUNCH not specified, exiting"
   exit 1
-else
-  LUNCH="slim_$DEVICE-userdebug"
 fi
 if [ -z "$BRANCH" ]
 then
   echo "BRANCH not specified, exiting."
   exit 1
+fi
+if [ -z "$JOBS" ]
+then
+  JOBS="4"
+fi
+if [ -z "$UPLOADER" ]
+then
+  echo "UPLOAD not specified, not uploading."
 fi
 if [ -z "$CLEAN" ]
 then
@@ -158,7 +142,13 @@ fi
 # build it
 make -j2 bacon
 
-MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' out/target/product/$DEVICE/system/build.prop`
+MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' $OUT/system/build.prop`
+DEVICE=`sed -n -e'/ro\.product\.device/s/^.*=//p' $OUT/system/build.prop`
+if [ -z "$DEVICE" ]
+then
+  echo "DEVICE not found, exiting"
+  exit 1
+fi
 END=$(date +%s)
 DIFF=$(( $END - $START ))
 
