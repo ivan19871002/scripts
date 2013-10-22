@@ -3,7 +3,7 @@
 function check_result {
   if [ "0" -ne "$?" ]
   then
-    #(repo forall -c "git reset --hard") > /dev/null
+    (repo forall -c "git reset --hard") > /dev/null
     rm -f .repo/local_manifests/*.xml
     echo "$1"
     exit 1
@@ -122,13 +122,6 @@ fi
 repo init -u $PROTO://github.com/SlimRoms/platform_manifest.git -b "$BRANCH"
 check_result "repo init failed."
 
-TEMPSTASH=$(mktemp -d)
-mv .repo/local_manifests/* "$TEMPSTASH"
-mv "$TEMPSTASH"/slim_manifest.xml .repo/local_manifests/
-repo manifest -o "$WORKSPACE"/archive/manifest.xml -r
-mv "$TEMPSTASH"/* .repo/local_manifests/ 2> /dev/null
-rmdir "$TEMPSTASH"
-
 for manifest in $(ls "$WORKSPACE/manifests")
 do
     cp -f "$WORKSPACE/manifests/$manifest" ".repo/local_manifests/$manifest"
@@ -137,6 +130,7 @@ done
 if [ "$SYNC" = "true" ]
 then
   repo sync -d -c > /dev/null
+  check_result "repo sync failed"
   echo "repo sync complete."
 fi
 if [ "$CHERRY_PICK" = "true" ]
@@ -162,6 +156,7 @@ source build/envsetup.sh &> /dev/null
 
 # Lunch
 lunch "$LUNCH"
+check_result "lunch failed"
 
 # Clean up
 if [ "$CLEAN" != "none" ]
@@ -170,7 +165,8 @@ then
 fi
 
 # build it
-make -j2 bacon
+time make -j2 bacon
+check_result "Build failed."
 
 MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' $OUT/system/build.prop`
 DEVICE=`sed -n -e'/ro\.product\.device/s/^.*=//p' $OUT/system/build.prop`
@@ -179,6 +175,17 @@ then
   echo "DEVICE not found, exiting"
   exit 1
 fi
+
+if [ -d ".repo/local_manifests" ]
+then
+    TEMPSTASH=$(mktemp -d)
+    mv .repo/local_manifests/* "$TEMPSTASH"
+    mv "$TEMPSTASH"/slim_manifest.xml .repo/local_manifests/
+    repo manifest -o "$WORKSPACE"/archive/manifest.xml -r
+    mv "$TEMPSTASH"/* .repo/local_manifests/ 2> /dev/null
+    rmdir "$TEMPSTASH"
+fi
+
 END=$(date +%s)
 DIFF=$(( $END - $START ))
 
