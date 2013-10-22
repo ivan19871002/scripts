@@ -151,7 +151,7 @@ then
 fi
 
 # build it
-time make -j"$JOBS" bacon bootzip
+time make -j"$JOBS" bacon
 check_result "Build failed."
 
 MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' $OUT/system/build.prop`
