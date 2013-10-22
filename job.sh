@@ -11,5 +11,5 @@ fi
 
 export PATH=${PATH}:~/scripts:~/bin
 
-cd hudson
+cd scripts
 exec ./build.sh
