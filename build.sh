@@ -110,8 +110,14 @@ fi
 
 export BUILD_WITH_COLORS=0
 
-repo init -u $PROTO://github.com/$REMOTE/platform_manifest.git -b "$BRANCH"
-check_result "repo init failed."
+if [ "$REMOTE" = "SlimRoms" ]
+then
+    repo init -u $PROTO://github.com/$REMOTE/platform_manifest.git -b "$BRANCH"
+    check_result "repo init failed."
+else
+    repo init -u $PROTO://github.com/$REMOTE/android.git -b "$BRANCH"
+    check_result "repo init failed."
+fi
 
 if [ "$SYNC" = "true" ]
 then
