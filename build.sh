@@ -17,7 +17,6 @@ SOURCE="$HOME/$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
   mkdir -p "$SOURCE"
-  FIRST=true
 fi
 cd "$SOURCE"
 
@@ -56,6 +55,14 @@ then
   echo "WORKSPACE not set, exiting."
   exit 1
 fi
+if [ -z "$PROTO" ]
+then
+    PROTO=http
+fi
+if [ ! -z "$BUILD_TYPE" ]
+then
+    export SLIM_BUILD_TYPE="$BUILD_TYPE"
+fi
 
 # colorization fix in Jenkins
 export CL_RED="\"\033[31m\""
@@ -77,16 +84,28 @@ rm -rf archive
 mkdir -p archive
 cd "$SOURCE"
 
-curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > "$HOME/bin/repo"
-chmod a+x "$HOME/bin/repo"
+REPO=$(which repo)
+if [ -z "$REPO" ]
+then
+    mkdir -p "$HOME/bin"
+    curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > "$HOME/bin/repo"
+    chmod a+x "$HOME/bin/repo"
+fi
+
 export PATH=${PATH}:$HOME/bin
 
 #CCACHE
 export USE_CCACHE=1
 export CCACHE_NLEVELS=4
-export CCACHE_DIR=/mnt/ccache-jenkins
-export BUILD_WITH_COLORS=0
+export CCACHE_DIR=/mnt/ccache-jenkins/ccache
 
+if [ ! "$(ccache -s | grep -E 'max cache size' | awk '{print $4}')" = "100.0" ]
+then
+    ccache -M 100G
+fi
+
+export BUILD_WITH_COLORS=0
+    
 if [ "$FIRST" != "true" ]
 then
   rm -rf .repo/manifests*
@@ -100,29 +119,25 @@ then
     fi
   done
 fi
-repo init -u git://github.com/SlimRoms/platform_manifest.git -b "$BRANCH"
+repo init -u $PROTO://github.com/SlimRoms/platform_manifest.git -b "$BRANCH"
 check_result "repo init failed."
 
-if [ "$FIRST" = "true" ]
-then
-  repo sync
-else
-  TEMPSTASH=$(mktemp -d)
-  mv .repo/local_manifests/* "$TEMPSTASH"
-  mv "$TEMPSTASH"/slim_manifest.xml .repo/local_manifests/
-  repo manifest -o "$WORKSPACE"/archive/manifest.xml -r
-  mv "$TEMPSTASH"/* .repo/local_manifests/ 2> /dev/null
-  rmdir "$TEMPSTASH"
+TEMPSTASH=$(mktemp -d)
+mv .repo/local_manifests/* "$TEMPSTASH"
+mv "$TEMPSTASH"/slim_manifest.xml .repo/local_manifests/
+repo manifest -o "$WORKSPACE"/archive/manifest.xml -r
+mv "$TEMPSTASH"/* .repo/local_manifests/ 2> /dev/null
+rmdir "$TEMPSTASH"
 
-  for manifest in $(ls "$WORKSPACE/manifests")
-  do
+for manifest in $(ls "$WORKSPACE/manifests")
+do
     cp -f "$WORKSPACE/manifests/$manifest" ".repo/local_manifests/$manifest"
-  done
-fi
+done
 
 if [ "$SYNC" = "true" ]
 then
-  repo sync
+  repo sync -d -c > /dev/null
+  echo "repo sync complete."
 fi
 if [ "$CHERRY_PICK" = "true" ]
 then
