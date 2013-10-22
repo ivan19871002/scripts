@@ -9,7 +9,11 @@ function check_result {
     fi
 }
 
-SOURCE="$HOME/$BRANCH"
+if [ -z "$REMOTE" ]
+then
+    REMOTE=SlimRoms
+fi
+SOURCE="$HOME/$REMOTE-$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
     mkdir -p "$SOURCE"
@@ -61,7 +65,6 @@ then
 fi
 export SLIM_BUILD_TYPE="$BUILD_TYPE"
 export SLIM_BUILD_EXTRA="$BUILD_NUMBER"
-echo "$SLIM_BUILD_EXTRA"
 
 # colorization fix in Jenkins
 export CL_RED="\"\033[31m\""
@@ -107,7 +110,7 @@ fi
 
 export BUILD_WITH_COLORS=0
 
-repo init -u $PROTO://github.com/SlimRoms/platform_manifest.git -b "$BRANCH"
+repo init -u $PROTO://github.com/$REMOTE/platform_manifest.git -b "$BRANCH"
 check_result "repo init failed."
 
 if [ "$SYNC" = "true" ]
@@ -153,7 +156,10 @@ if [ -d ".repo/local_manifests" ]
 then
     TEMPSTASH=$(mktemp -d)
     mv .repo/local_manifests/* "$TEMPSTASH"
-    mv "$TEMPSTASH"/slim_manifest.xml .repo/local_manifests/
+    if [ -f "$TEMPSTASH/slim_manifest.xml" ]
+    then
+        mv "$TEMPSTASH"/slim_manifest.xml .repo/local_manifests/
+    fi
     repo manifest -o "$WORKSPACE"/archive/manifest.xml -r
     mv "$TEMPSTASH"/* .repo/local_manifests/ 2> /dev/null
     rmdir "$TEMPSTASH"
@@ -162,38 +168,41 @@ fi
 END=$(date +%s)
 DIFF=$(( $END - $START ))
 
-for f in $(ls out/target/product/$DEVICE/Slim-*.zip*)
+for f in $(ls "$OUT"/*.zip*)
 do
+    if [[ $(basename "$f") == *"ota"* ]]
+    then
+        continue
+    fi
     cp "$f" "$WORKSPACE"/archive/$(basename "$f")
 done
-if [ -f out/target/product/$DEVICE/recovery.img ]
+if [ -f "$OUT/recovery.img" ]
 then
-    cp out/target/product/$DEVICE/recovery.img "$WORKSPACE"/archive
+    cp "$OUT/recovery.img" "$WORKSPACE/archive"
 fi
 
-ZIP=$(ls "$WORKSPACE"/archive/Slim-*.zip)
-unzip -p $ZIP system/build.prop > "$WORKSPACE"/archive/build.prop
+cp "$OUT/system/build.prop" "$WORKSPACE/archive/build.prop"
 
 # upload to goo.im
 if [ "$UPLOADER" = "goo.im" ]
 then
     chmod a+x $WORKSPACE/scripts/upload-goo.sh
     $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
-    $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE"
-    $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE"
+    $WORKSPACE/scripts/upload-goo.sh "upload" "$OUT/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE"
+    $WORKSPACE/scripts/upload-goo.sh "upload" "$OUT/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE"
     LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
     MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip.md5sum"
 # upload to dropbox
 elif [ "$UPLOADER" = "dropbox" ]
 then
-    $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "slim/$DEVICE/$MODVERSION.zip"
-    $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "slim/$DEVICE/$MODVERSION.zip.md5sum"
-    LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip")
-    MD5LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip.md5sum")
+    $WORKSPACE/scripts/dropbox_uploader.sh upload "$OUT/$MODVERSION.zip" "$REMOTE/$DEVICE/$MODVERSION.zip"
+    $WORKSPACE/scripts/dropbox_uploader.sh upload "$OUT/$MODVERSION.zip.md5sum" "$REMOTE/$DEVICE/$MODVERSION.zip.md5sum"
+    LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "$REMOTE/$DEVICE/$MODVERSION.zip")
+    MD5LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "$REMOTE/$DEVICE/$MODVERSION.zip.md5sum")
 elif [ "$UPLOADER" = "drive" ]
 then
-    LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip")
-    MD5LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
+    LINK=$(google-drive_uploader.sh "$OUT/$MODVERSION.zip")
+    MD5LINK=$(google-drive_uploader.sh "$OUT/$MODVERSION.zip.md5sum")
 fi
 
 MD5=$(cat "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
