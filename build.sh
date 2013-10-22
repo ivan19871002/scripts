@@ -174,14 +174,14 @@ fi
 END=$(date +%s)
 DIFF=$(( $END - $START ))
 
-for f in $(ls "$OUT"/*.zip*)
-do
-    if [[ $(basename "$f") == *"ota"* ]]
-    then
-        continue
-    fi
-    cp "$f" "$WORKSPACE"/archive/$(basename "$f")
-done
+#for f in $(ls "$OUT"/*.zip*)
+#do
+#    if [[ $(basename "$f") == *"ota"* ]]
+#    then
+#        continue
+#    fi
+#    cp "$f" "$WORKSPACE"/archive/$(basename "$f")
+#done
 if [ -f "$OUT/recovery.img" ]
 then
     cp "$OUT/recovery.img" "$WORKSPACE/archive"
