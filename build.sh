@@ -85,6 +85,7 @@ export PATH=${PATH}:$HOME/bin
 export USE_CCACHE=1
 export CCACHE_NLEVELS=4
 export CCACHE_DIR=/mnt/ccache-jenkins
+export BUILD_WITH_COLORS=0
 
 if [ "$FIRST" != "true" ]
 then
