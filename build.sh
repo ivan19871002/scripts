@@ -56,10 +56,12 @@ if [ -z "$PROTO" ]
 then
     PROTO=http
 fi
-if [ ! -z "$BUILD_TYPE" ]
+if [ -z "$BUILD_TYPE" ]
 then
-    export SLIM_BUILD_TYPE="$BUILD_TYPE"
+    BUILD_TYPE=EXPERIMENTAL
 fi
+export SLIM_BUILD_TYPE="$BUILD_TYPE"
+export SLIM_BUILD_EXTRA="$BUILD_NUMBER"
 
 # colorization fix in Jenkins
 export CL_RED="\"\033[31m\""
@@ -173,10 +175,11 @@ unzip -p $ZIP system/build.prop > "$WORKSPACE"/archive/build.prop
 # upload to goo.im
 if [ "$UPLOADER" = "goo.im" ]
 then
-  upload-goo "$DEVICE" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip"
-  upload-goo "$DEVICE" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum"
-  LINK="http://goo.im/devs/gmillz/$DEVICE/$MODVERSION.zip"
-  MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$MODVERSION.zip.md5sum"
+  $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
+  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
+  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
+  LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
+  MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip.md5sum"
 # upload to dropbox
 elif [ "$UPLOADER" = "dropbox" ]
 then

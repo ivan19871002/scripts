@@ -71,7 +71,7 @@ function goo-mkdir {
   fi
 
   echo "
-    mkdir $DIR
+    mkdir -p $DIR
 	exit
   " | sftp gmillz@upload.goo.im
 }
