@@ -175,6 +175,7 @@ unzip -p $ZIP system/build.prop > "$WORKSPACE"/archive/build.prop
 # upload to goo.im
 if [ "$UPLOADER" = "goo.im" ]
 then
+  chmod a+x $WORKSPACE/scripts/upload-goo.sh
   $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
   $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
   $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
