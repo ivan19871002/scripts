@@ -195,6 +195,7 @@ rm -f "$LOGFILE.lunch"
 
 # Clean up
 if [ "$CLEAN" != "none" ]
+then
     make "$CLEAN"
 fi
 
