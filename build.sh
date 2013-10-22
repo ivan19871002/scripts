@@ -108,11 +108,6 @@ export BUILD_WITH_COLORS=0
 repo init -u $PROTO://github.com/SlimRoms/platform_manifest.git -b "$BRANCH"
 check_result "repo init failed."
 
-for manifest in $(ls "$WORKSPACE/manifests")
-do
-    cp -f "$WORKSPACE/manifests/$manifest" ".repo/local_manifests/$manifest"
-done
-
 if [ "$SYNC" = "true" ]
 then
   repo sync -d -c > /dev/null
@@ -124,18 +119,6 @@ then
   chmod a+x $WORKSPACE/cherry-pick.sh
   . $WORKSPACE/cherry-pick.sh
 fi
-
-#rm -f "$WORKSPACE"/changecount
-#WORKSPACE="$WORKSPACE" LUNCH="$LUNCH" bash $HOME/scripts/buildlog.sh 2>&1
-#if [ -f "$WORKSPACE/changecount" ]
-#then
-#  CHANGE_COUNT=$(cat "$WORKSPACE/changecount")
-#  rm -f "$WORKSPACE/changecount"
-#  if [ "$CHANGE_COUNT" -eq "0" ]
-#  then
-#    echo "Zero changes since last build, aborting."
-#  fi
-#fi
 
 #init Build
 source build/envsetup.sh &> /dev/null
@@ -205,28 +188,16 @@ elif [ "$UPLOADER" = "drive" ]
 then
   LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip")
   MD5LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
-elif [ "$UPLOADER" = "flo-nightly" ]
-then
-  # Server details
-  HOST="192.241.138.156"
-  USER="root"
-  # upload to server
-  echo "
-    cd /var/www/html/downloads/flo
-    put "$FILE"
-    exit
-  " | sftp $USER@$HOST
-  # clean server so only 5 files get kept
-  echo "
-    cd /var/www/html/downloads/flo
-    (ls -t|head -n 5;ls)|sort|uniq -u|xargs rm
-    exit
-  " | ssh $USER@$HOST &>> $LOGFILE
 fi
 
 MD5=$(cat "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
 echo "$DEVICE took $DIFF to build"
-echo "Build: $LINK"
+if [ -z "$UPLOADER" ]
+then
+    echo "Build: $OUT/$MODVERSION.zip"
+else
+    echo "Build: $LINK"
+fi
 echo "MD5: $MD5"
 
 if [ "$UPLOADER" != "none" ]
