@@ -156,23 +156,23 @@ if [ "$SYNC" = "true" ]
 then
   repo sync
 fi
-if [ "$CHERRY_PICK" = "true" || -f $HOME/scripts/cherry-pick.sh ]
+if [ "$CHERRY_PICK" = "true" ]
 then
-  chmod a+x $HOME/scripts/cherry-pick.sh
-  . $HOME/scripts/cherry-pick.sh
+  chmod a+x $WORKSPACE/cherry-pick.sh
+  . $WORKSPACE/cherry-pick.sh
 fi
 
-rm -f "$WORKSPACE"/changecount
-WORKSPACE="$WORKSPACE" LUNCH="$LUNCH" bash $HOME/scripts/buildlog.sh 2>&1
-if [ -f "$WORKSPACE/changecount" ]
-then
-  CHANGE_COUNT=$(cat "$WORKSPACE/changecount")
-  rm -f "$WORKSPACE/changecount"
-  if [ "$CHANGE_COUNT" -eq "0" ]
-  then
-    echo "Zero changes since last build, aborting."
-  fi
-fi
+#rm -f "$WORKSPACE"/changecount
+#WORKSPACE="$WORKSPACE" LUNCH="$LUNCH" bash $HOME/scripts/buildlog.sh 2>&1
+#if [ -f "$WORKSPACE/changecount" ]
+#then
+#  CHANGE_COUNT=$(cat "$WORKSPACE/changecount")
+#  rm -f "$WORKSPACE/changecount"
+#  if [ "$CHANGE_COUNT" -eq "0" ]
+#  then
+#    echo "Zero changes since last build, aborting."
+#  fi
+#fi
 
 #init Build
 source build/envsetup.sh &> /dev/null
@@ -212,7 +212,7 @@ then
 	else
 	  make "$CLEAN"
 	fi
-  elif [ "$FORCE_CLEAN" = "true"
+  elif [ "$FORCE_CLEAN" = "true" ]
     touch .clean
 	if [ "$LOGGING" = "true" ]
 	then
