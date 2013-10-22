@@ -12,4 +12,5 @@ fi
 export PATH=${PATH}:~/scripts:~/bin
 
 cd scripts
+chmod a+x ./build.sh
 exec ./build.sh
