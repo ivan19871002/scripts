@@ -10,9 +10,6 @@ function check_result {
   fi
 }
 
-#chmod a+x "$WORKSPACE"/remove-old-logs.sh
-#. "$WORKSPACE"/remove-old-logs.sh
-
 SOURCE="$HOME/$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
@@ -95,30 +92,19 @@ fi
 export PATH=${PATH}:$HOME/bin
 
 #CCACHE
-export USE_CCACHE=1
-export CCACHE_NLEVELS=4
 export CCACHE_DIR=/mnt/ccache-jenkins/ccache
-
-if [ ! "$(ccache -s | grep -E 'max cache size' | awk '{print $4}')" = "100.0" ]
+if [ -d "$CCACHE_DIR" ]
 then
-    ccache -M 100G
+    export USE_CCACHE=1
+    export CCACHE_NLEVELS=4
+    if [ ! "$(ccache -s | grep -E 'max cache size' | awk '{print $4}')" = "100.0" ]
+    then
+        ccache -M 100G
+    fi
 fi
 
 export BUILD_WITH_COLORS=0
-    
-if [ "$FIRST" != "true" ]
-then
-  rm -rf .repo/manifests*
-  mkdir -p "$WORKSPACE"/manifests
-  for manifest in $(ls .repo/local_manifests)
-  do
-    if [ "$manifest" != "slim_manifest.xml" ]
-    then
-      cp -f .repo/local_manifests/"$manifest" "$WORKSPACE"/manifests/$manifest
-      rm -f .repo/local_manifests/"$manifest"
-    fi
-  done
-fi
+
 repo init -u $PROTO://github.com/SlimRoms/platform_manifest.git -b "$BRANCH"
 check_result "repo init failed."
 
@@ -165,7 +151,7 @@ then
 fi
 
 # build it
-time make -j"$JOBS" bacon
+time make -j"$JOBS" bacon bootzip
 check_result "Build failed."
 
 MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' $OUT/system/build.prop`
@@ -193,10 +179,6 @@ for f in $(ls out/target/product/$DEVICE/Slim-*.zip*)
 do
   cp "$f" "$WORKSPACE"/archive/$(basename "$f")
 done
-if [ -f out/target/product/$DEVICE/utilities/update.zip ]
-then
-  cp out/target/product/$DEVICE/utilities/update.zip "$WORKSPACE"/archive/recovery.zip
-fi
 if [ -f out/target/product/$DEVICE/recovery.img ]
 then
   cp out/target/product/$DEVICE/recovery.img "$WORKSPACE"/archive
@@ -246,13 +228,6 @@ MD5=$(cat "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
 echo "$DEVICE took $DIFF to build"
 echo "Build: $LINK"
 echo "MD5: $MD5"
-
-mkdir -p "/home/gmillz/completed-builds/$MODVERSION"
-
-for f in $(ls $WORKSPACE/archive)
-do
-  cp $WORKSPACE/archive/$f /home/gmillz/completed-builds/$MODVERSION/$f
-done
 
 if [ "$UPLOADER" != "none" ]
 then
