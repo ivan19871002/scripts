@@ -171,7 +171,7 @@ ZIP=$(ls "$WORKSPACE"/archive/Slim-*.zip)
 unzip -p $ZIP system/build.prop > "$WORKSPACE"/archive/build.prop
 
 # upload to goo.im
-if [ "$UPLOADER" = "goo" ]
+if [ "$UPLOADER" = "goo.im" ]
 then
   upload-goo "$DEVICE" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip"
   upload-goo "$DEVICE" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum"
@@ -180,10 +180,10 @@ then
 # upload to dropbox
 elif [ "$UPLOADER" = "dropbox" ]
 then
-  dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "slim/$DEVICE/$MODVERSION.zip"
-  dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "slim/$DEVICE/$MODVERSION.zip.md5sum"
-  LINK=$(dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip")
-  MD5LINK=$(dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip.md5sum")
+  $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "slim/$DEVICE/$MODVERSION.zip"
+  $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "slim/$DEVICE/$MODVERSION.zip.md5sum"
+  LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip")
+  MD5LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip.md5sum")
 elif [ "$UPLOADER" = "drive" ]
 then
   LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip")
