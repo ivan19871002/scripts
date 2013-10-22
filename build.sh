@@ -115,9 +115,9 @@ rm -rf archive
 mkdir -p archive
 cd "$SOURCE"
 
-curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > "$WORKSPACE"/bin/repo
-chmod a+x "$WORKSPACE/bin/repo"
-export PATH=${PATH}:$WORKSPACE/bin
+curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > "$HOME/bin/repo"
+chmod a+x "$HOME/bin/repo"
+export PATH=${PATH}:$HOME/bin
 
 if [ "$FIRST" != "true" ]
 then
