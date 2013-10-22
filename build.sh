@@ -10,34 +10,15 @@ function check_result {
   fi
 }
 
-if [ ! -f "~/bin/remove-old-logs.sh" ]
+chmod a+x ~/scripts/remove-old-logs.sh
+~/scripts/remove-old-logs.sh
+
+if [ -f ~/scripts/bgbuild-config ]
 then
-  curl https://raw.github.com/gmillz/scripts/master/remove-old-logs.sh > ~/bin/remove-old-logs.sh
-fi
-if [ ! -f "~/bin/cherry-pick.sh" ]
-then
-  curl https://raw.github.com/gmillz/scripts/master/cherry-pick.sh > ~/bin/cherry-pick.sh
-fi
-if [ "$UPLOADER" = "dropbox" || ! -f "~/bin/dropbox_uploader.sh" ]
-then
-  curl https://raw.github.com/gmillz/scripts/master/dropbox_uploader.sh > ~/bin/dropbox_uploader.sh
-elif [ "$UPLOADER" = "goo" || ! -f "~/bin/upload-goo.sh" ]
-then
-  curl https://raw.github.com/gmillz/scripts/master/upload-goo.sh > ~/bin/upload-goo.sh
-elif [ "$UPLOADER" = "drive" || ! -f "~/bin/google-drive_uploader.sh" ]
-then
-  curl https://raw.github.com/gmillz/scripts/master/google-drive_uploader.sh > ~/bin/google-drive_uploader.sh
+  source ~/scripts/bgbuild-config
 fi
 
-chmod a+x ~/bin/remove-old-logs.sh
-~/bin/remove-old-logs.sh
-
-if [ -f "~/bin/bgbuild-config" ]
-then
-  source ~/bin/bgbuild-config
-fi
-
-SOURCE="~/$BRANCH"
+SOURCE=~/"$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
   mkdir -p "$SOURCE"
@@ -45,9 +26,9 @@ then
 fi
 cd "$SOURCE"
 
-if [ ! -d "~/logs" ]
+if [ ! -d ~/logs ]
 then
-  mkdir -p "~/logs"
+  mkdir -p ~/logs
 fi
 
 if [ -z "$UPLOADER" ]
@@ -167,13 +148,14 @@ if [ "$SYNC" = "true" ]
 then
   repo sync
 fi
-if [ "$CHERRY_PICK" = "true" || -f "~/bin/cherry-pick.sh" ]
+if [ "$CHERRY_PICK" = "true" || -f ~/scripts/cherry-pick.sh ]
 then
-  cherry-pick.sh
+  chmod a+x ~/scripts/cherry-pick.sh
+  . ~/scripts/cherry-pick.sh
 fi
 
 rm -f "$WORKSPACE"/changecount
-WORKSPACE="$WORKSPACE" LUNCH="$LUNCH" bash ~/bin/buildlog.sh 2>&1
+WORKSPACE="$WORKSPACE" LUNCH="$LUNCH" bash ~/scripts/buildlog.sh 2>&1
 if [ -f "$WORKSPACE/changecount" ]
 then
   CHANGE_COUNT=$(cat "$WORKSPACE/changecount")
@@ -347,5 +329,5 @@ done
 
 if [ "$UPLOADER" != "none" ]
 then
-  sed -i "s/UPLOADER=$UPLOADER/UPLOADER=none/g" ~/bin/bgbuild-config
+  sed -i "s/UPLOADER=$UPLOADER/UPLOADER=none/g" ~/scripts/bgbuild-config
 fi
