@@ -72,8 +72,8 @@ function goo-mkdir {
 
   echo "
     mkdir -p $DIR
-	exit
-  " | sftp gmillz@upload.goo.im
+    exit
+  " | ssh gmillz@upload.goo.im
 }
 
 function goo-list {
