@@ -62,6 +62,7 @@ then
 fi
 export SLIM_BUILD_TYPE="$BUILD_TYPE"
 export SLIM_BUILD_EXTRA="$BUILD_NUMBER"
+echo "$SLIM_BUILD_EXTRA"
 
 # colorization fix in Jenkins
 export CL_RED="\"\033[31m\""
@@ -177,8 +178,8 @@ if [ "$UPLOADER" = "goo.im" ]
 then
   chmod a+x $WORKSPACE/scripts/upload-goo.sh
   $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
-  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
-  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
+  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE"
+  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE"
   LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
   MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip.md5sum"
 # upload to dropbox
