@@ -29,14 +29,15 @@ then
   curl https://raw.github.com/gmillz/scripts/master/google-drive_uploader.sh > ~/bin/google-drive_uploader.sh
 fi
 
+chmod a+x ~/bin/remove-old-logs.sh
 ~/bin/remove-old-logs.sh
 
-if [ -f "/home/gmillz/bin/bgbuild-config" ]
+if [ -f "~/bin/bgbuild-config" ]
 then
   source ~/bin/bgbuild-config
 fi
 
-SOURCE="/home/gmillz/$BRANCH"
+SOURCE="~/$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
   mkdir -p "$SOURCE"
@@ -44,9 +45,9 @@ then
 fi
 cd "$SOURCE"
 
-if [ ! -d "/home/gmillz/logs" ]
+if [ ! -d "~/logs" ]
 then
-  mkdir -p "/home/gmillz/logs"
+  mkdir -p "~/logs"
 fi
 
 if [ -z "$UPLOADER" ]
