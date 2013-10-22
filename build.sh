@@ -1,56 +1,55 @@
 #!/bin/bash
 
 function check_result {
-  if [ "0" -ne "$?" ]
-  then
-    (repo forall -c "git reset --hard") > /dev/null
-    rm -f .repo/local_manifests/*.xml
-    echo "$1"
-    exit 1
-  fi
+    if [ "0" -ne "$?" ]
+    then
+      (repo forall -c "git reset --hard") > /dev/null
+      echo "$1"
+      exit 1
+    fi
 }
 
 SOURCE="$HOME/$BRANCH"
 if [ ! -d "$SOURCE" ]
 then
-  mkdir -p "$SOURCE"
+    mkdir -p "$SOURCE"
 fi
 cd "$SOURCE"
 
 if [ -z "$LUNCH" ]
 then
-  echo "LUNCH not specified, exiting"
-  exit 1
+    echo "LUNCH not specified, exiting"
+    exit 1
 fi
 if [ -z "$BRANCH" ]
 then
-  echo "BRANCH not specified, exiting."
-  exit 1
+    echo "BRANCH not specified, exiting."
+    exit 1
 fi
 if [ -z "$JOBS" ]
 then
-  JOBS="4"
+    JOBS="4"
 fi
 if [ -z "$UPLOADER" ]
 then
-  echo "UPLOAD not specified, not uploading."
+    echo "UPLOAD not specified, not uploading."
 fi
 if [ -z "$CLEAN" ]
 then
-  CLEAN="none"
+    CLEAN="none"
 fi
 if [ -z "$SYNC" ]
 then
-  SYNC=true
+    SYNC=true
 fi
 if [ -z "$CHERRY_PICK" ]
 then
-  CHERRY_PICK=true
+    CHERRY_PICK=true
 fi
 if [ -z "$WORKSPACE" ]
 then
-  echo "WORKSPACE not set, exiting."
-  exit 1
+    echo "WORKSPACE not set, exiting."
+    exit 1
 fi
 if [ -z "$PROTO" ]
 then
@@ -77,7 +76,7 @@ START=$(date +"%s")
 
 if [ ! -d "$WORKSPACE" ]
 then
-  mkdir -p "$WORKSPACE"
+    mkdir -p "$WORKSPACE"
 fi
 cd "$WORKSPACE"
 rm -rf archive
@@ -113,14 +112,14 @@ check_result "repo init failed."
 
 if [ "$SYNC" = "true" ]
 then
-  repo sync -d -c > /dev/null
-  check_result "repo sync failed"
-  echo "repo sync complete."
+    repo sync -d -c > /dev/null
+    check_result "repo sync failed"
+    echo "repo sync complete."
 fi
 if [ "$CHERRY_PICK" = "true" ]
 then
-  chmod a+x $WORKSPACE/cherry-pick.sh
-  . $WORKSPACE/cherry-pick.sh
+    chmod a+x $WORKSPACE/cherry-pick.sh
+    . $WORKSPACE/cherry-pick.sh
 fi
 
 #init Build
@@ -129,6 +128,8 @@ source build/envsetup.sh &> /dev/null
 # Lunch
 lunch "$LUNCH"
 check_result "lunch failed"
+
+WORKSPACE=$WORKSPACE LUNCH=$LUNCH sh $WORKSPACE/scripts/buildlog.sh 2>&1
 
 # Clean up
 if [ "$CLEAN" != "none" ]
@@ -144,8 +145,8 @@ MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' $OUT/system/build.prop`
 DEVICE=`sed -n -e'/ro\.product\.device/s/^.*=//p' $OUT/system/build.prop`
 if [ -z "$DEVICE" ]
 then
-  echo "DEVICE not found, exiting"
-  exit 1
+    echo "DEVICE not found, exiting"
+    exit 1
 fi
 
 if [ -d ".repo/local_manifests" ]
@@ -163,11 +164,11 @@ DIFF=$(( $END - $START ))
 
 for f in $(ls out/target/product/$DEVICE/Slim-*.zip*)
 do
-  cp "$f" "$WORKSPACE"/archive/$(basename "$f")
+    cp "$f" "$WORKSPACE"/archive/$(basename "$f")
 done
 if [ -f out/target/product/$DEVICE/recovery.img ]
 then
-  cp out/target/product/$DEVICE/recovery.img "$WORKSPACE"/archive
+    cp out/target/product/$DEVICE/recovery.img "$WORKSPACE"/archive
 fi
 
 ZIP=$(ls "$WORKSPACE"/archive/Slim-*.zip)
@@ -176,23 +177,23 @@ unzip -p $ZIP system/build.prop > "$WORKSPACE"/archive/build.prop
 # upload to goo.im
 if [ "$UPLOADER" = "goo.im" ]
 then
-  chmod a+x $WORKSPACE/scripts/upload-goo.sh
-  $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
-  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE"
-  $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE"
-  LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
-  MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip.md5sum"
+    chmod a+x $WORKSPACE/scripts/upload-goo.sh
+    $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
+    $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE"
+    $WORKSPACE/scripts/upload-goo.sh "upload" "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE"
+    LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
+    MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip.md5sum"
 # upload to dropbox
 elif [ "$UPLOADER" = "dropbox" ]
 then
-  $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "slim/$DEVICE/$MODVERSION.zip"
-  $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "slim/$DEVICE/$MODVERSION.zip.md5sum"
-  LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip")
-  MD5LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip.md5sum")
+    $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip" "slim/$DEVICE/$MODVERSION.zip"
+    $WORKSPACE/scripts/dropbox_uploader.sh upload "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum" "slim/$DEVICE/$MODVERSION.zip.md5sum"
+    LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip")
+    MD5LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "slim/$DEVICE/$MODVERSION.zip.md5sum")
 elif [ "$UPLOADER" = "drive" ]
 then
-  LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip")
-  MD5LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
+    LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip")
+    MD5LINK=$(google-drive_uploader.sh "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
 fi
 
 MD5=$(cat "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
