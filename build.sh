@@ -57,6 +57,15 @@ then
   exit 1
 fi
 
+# colorization fix in Jenkins
+export CL_RED="\"\033[31m\""
+export CL_GRN="\"\033[32m\""
+export CL_YLW="\"\033[33m\""
+export CL_BLU="\"\033[34m\""
+export CL_MAG="\"\033[35m\""
+export CL_CYN="\"\033[36m\""
+export CL_RST="\"\033[0m\""
+
 START=$(date +"%s")
 
 if [ ! -d "$WORKSPACE" ]
@@ -71,6 +80,11 @@ cd "$SOURCE"
 curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > "$HOME/bin/repo"
 chmod a+x "$HOME/bin/repo"
 export PATH=${PATH}:$HOME/bin
+
+#CCACHE
+export USE_CCACHE=1
+export CCACHE_NLEVELS=4
+export CCACHE_DIR=/mnt/ccache-jenkins
 
 if [ "$FIRST" != "true" ]
 then
