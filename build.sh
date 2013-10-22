@@ -195,34 +195,7 @@ rm -f "$LOGFILE.lunch"
 
 # Clean up
 if [ "$CLEAN" != "none" ]
-then
-  LAST_CLEAN=0
-  if [ -f .clean ]
-  then
-    LAST_SYNC=$(date -r .clean +%s)
-  fi
-  TIME_SINCE_LAST_CLEAN=$(expr $(date +%s) - "$LAST_CLEAN")
-  TIME_SINCE_LAST_CLEAN=$(expr "$TIME_SINCE_LAST_CLEAN" / 60 / 60)
-  if [ "$TIME_SINCE_LAST_CLEAN" -gt "20" ]
-  then
-    touch .clean
-	if [ "$LOGGING" = "true" ]
-	then
-      make "$CLEAN" &> "$LOGFILE.clean"
-	else
-	  make "$CLEAN"
-	fi
-  elif [ "$FORCE_CLEAN" = "true" ]
-    touch .clean
-	if [ "$LOGGING" = "true" ]
-	then
-      make "$CLEAN" &> "$LOGFILE.clean"
-	else
-	  make "$CLEAN"
-	fi
-  else
-    echo "Skipping clean: $TIME_SINCE_LAST_CLEAN hours since last clean."
-  fi
+    make "$CLEAN"
 fi
 
 # build it
