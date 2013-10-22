@@ -5,8 +5,8 @@ then
 fi
 
 cd $WORKSPACE
-mkdir -p ../slim
-cd ../slim
+mkdir -p ../slim-build
+cd ../slim-build
 export WORKSPACE="$PWD"
 
 rm -rf scripts

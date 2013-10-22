@@ -199,8 +199,3 @@ else
     echo "Build: $LINK"
 fi
 echo "MD5: $MD5"
-
-if [ "$UPLOADER" != "none" ]
-then
-  sed -i "s/UPLOADER=$UPLOADER/UPLOADER=none/g" $HOME/scripts/build-config
-fi
