@@ -67,41 +67,10 @@ if [ -z "$CHERRY_PICK" ]
 then
   CHERRY_PICK=true
 fi
-if [ -z "$LOGGING" ]
-then
-  LOGGING=true
-fi
-if [ -z "$SEND_EMAIL" ]
-then
-  SEND_EMAIL=false
-fi
-if [ -z "$EMAIL" ]
-then
-  echo "EMAIL not set, disabling SEND_EMAIL"
-  SEND_EMAIL=false
-fi
-if [ -z "$BUILDSERVER_EMAIL" ]
-then
-  echo "BUILDSERVER_EMAIL not set, disabling SEND_EMAIL"
-  SEND_EMAIL=false
-fi
 if [ -z "$WORKSPACE" ]
 then
   echo "WORKSPACE not set, exiting."
   exit 1
-fi
-if [ -z "$LOGFILE" ]
-then
-  LOGGING=false
-fi
-
-if [ "$LOGGING" = "true" ]
-then
-  # these lines explained at http://serverfault.com/questions/103501/how-can-i-fully-log-all-bash-scripts-actions
-  exec 3>&1 4>&2
-  trap 'exec 2>&4 1>&3' 0 1 2 3
-  exec 1> "$LOGFILE" 2>&1
-  # Everything below will go to the log file
 fi
 
 START=$(date +"%s")
@@ -178,20 +147,7 @@ fi
 source build/envsetup.sh &> /dev/null
 
 # Lunch
-if ! lunch "$LUNCH" &> "$LOGFILE.lunch"
-then
-  if [ "$SEND_EMAIL" = "true" ]
-  then
-    echo "
-      Subject: $DEVICE lunch failed
-
-      Log:
-      $(cat "$LOGFILE.lunch")
-    " | esmtp "$EMAIL" -f "$BUILDSERVER_EMAIL"
-    exit 1
-  fi
-fi
-rm -f "$LOGFILE.lunch"
+lunch "$LUNCH"
 
 # Clean up
 if [ "$CLEAN" != "none" ]
@@ -200,23 +156,7 @@ then
 fi
 
 # build it
-if ! make -j2 bacon > "$LOGFILE.build" 2>&1
-then
-  if [ "$SEND_EMAIL" = "true" ]
-  then
-    echo "
-      Subject: $DEVICE failed
-
-      Log:
-      $(tail -30 $LOGFILE.build)
-    " | esmtp "$EMAIL" -f "$BUILDSERVER_EMAIL"
-  fi
-  exit 1
-fi
-if [ "$LOGGING" != "true" ]
-then
-  rm -f "$LOGFILE.build"
-fi
+make -j2 bacon
 
 MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' out/target/product/$DEVICE/system/build.prop`
 END=$(date +%s)
@@ -280,28 +220,6 @@ echo "$DEVICE took $DIFF to build"
 echo "Build: $LINK"
 echo "MD5: $MD5"
 
-# sending result email
-if [ "$SEND_EMAIL" = "true" ]
-then
-  if [ "$UPLOADER" = "none" ]
-  then
-    echo "
-      Subject: $DEVICE build finished, lasted $DIFF seconds
-
-      Not uploaded.
-
-    " | esmtp "$EMAIL" -f "$BUILDSERVER_EMAIL"
-  else
-    echo "
-      Subject: $DEVICE build finished, lasted $DIFF seconds
-
-      Link to build: $LINK
-      MD5: $MD5LINK
-
-    " | esmtp "$EMAIL" -f "$BUILDSERVER_EMAIL"
-  fi
-fi
-
 mkdir -p "/home/gmillz/completed-builds/$MODVERSION"
 
 for f in $(ls $WORKSPACE/archive)
@@ -311,5 +229,5 @@ done
 
 if [ "$UPLOADER" != "none" ]
 then
-  sed -i "s/UPLOADER=$UPLOADER/UPLOADER=none/g" $HOME/scripts/bgbuild-config
+  sed -i "s/UPLOADER=$UPLOADER/UPLOADER=none/g" $HOME/scripts/build-config
 fi
