@@ -12,7 +12,7 @@ export WORKSPACE="$PWD"
 rm -rf scripts
 git clone git://github.com/gmillz/scripts.git
 
-export PATH=${PATH}:~/scripts:~/bin
+export PATH=${PATH}:$WORKSPACE/scripts:~/bin
 
 cd scripts
 chmod a+x ./build.sh
