@@ -115,6 +115,10 @@ rm -rf archive
 mkdir -p archive
 cd "$SOURCE"
 
+curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > "$WORKSPACE"/bin/repo
+chmod a+x "$WORKSPACE/bin/repo"
+export PATH=${PATH}:$WORKSPACE/bin
+
 if [ "$FIRST" != "true" ]
 then
   rm -rf .repo/manifests*
