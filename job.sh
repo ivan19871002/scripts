@@ -9,5 +9,7 @@ then
     git clone git://github.com/gmillz/scripts.git
 fi
 
+export PATH=${PATH}:~/scripts:~/bin
+
 cd hudson
 exec ./build.sh
