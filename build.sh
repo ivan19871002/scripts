@@ -40,7 +40,7 @@ then
 fi
 if [ -z "$CLEAN" ]
 then
-    CLEAN="none"
+    CLEAN="false"
 fi
 if [ -z "$SYNC" ]
 then
@@ -141,14 +141,28 @@ check_result "lunch failed"
 WORKSPACE=$WORKSPACE LUNCH=$LUNCH sh $WORKSPACE/scripts/buildlog.sh 2>&1
 
 # Clean up
-if [ "$CLEAN" != "none" ]
+LAST_CLEAN=0
+if [ -f .clean ]
 then
-    make "$CLEAN"
+    LAST_CLEAN=$(date -r .clean +%s)
+fi
+TIME_SINCE_LAST_CLEAN=$(expr $(date +%s) - $LAST_CLEAN)
+TIME_SINCE_LAST_CLEAN=$(expr $TIME_SINCE_LAST_CLEAN / 60 / 60)
+if [ $TIME_SINCE_LAST_CLEAN -gt "24" -o $CLEAN != "none" ]
+then
+    echo "Cleaning!"
+    touch .clean
+    make $CLEAN
+else
+    echo "Skipping clean: $TIME_SINCE_LAST_CLEAN hours since last clean."
 fi
 
 # build it
 time make -j"$JOBS" bacon
 check_result "Build failed."
+
+# remove common folder since its not really common
+rm -rf out/target/common
 
 MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' $OUT/system/build.prop`
 DEVICE=`sed -n -e'/ro\.product\.device/s/^.*=//p' $OUT/system/build.prop`
