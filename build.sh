@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# function to check result of command
 function check_result {
     if [ "0" -ne "$?" ]
     then
@@ -9,6 +10,7 @@ function check_result {
     fi
 }
 
+# check all variables
 if [ -z "$REMOTE" ]
 then
     REMOTE=SlimRoms
@@ -63,8 +65,16 @@ if [ -z "$BUILD_TYPE" ]
 then
     BUILD_TYPE=EXPERIMENTAL
 fi
+
+# exports for slim
 export SLIM_BUILD_TYPE="$BUILD_TYPE"
-export SLIM_BUILD_EXTRA="$BUILD_NUMBER"
+
+if [ -z "$DATE_IN_BUILD" ]
+then
+    export SLIM_BUILD_EXTRA="$BUILD_NUMBER"
+else
+    export SLIM_BUILD_EXTRA=$(date +"%Y%m%d")
+fi
 
 # colorization fix in Jenkins
 export CL_RED="\"\033[31m\""
@@ -75,8 +85,10 @@ export CL_MAG="\"\033[35m\""
 export CL_CYN="\"\033[36m\""
 export CL_RST="\"\033[0m\""
 
+# start time
 START=$(date +"%s")
 
+# setup work space
 if [ ! -d "$WORKSPACE" ]
 then
     mkdir -p "$WORKSPACE"
@@ -86,6 +98,7 @@ rm -rf archive
 mkdir -p archive
 cd "$SOURCE"
 
+# download repo if needed
 REPO=$(which repo)
 if [ -z "$REPO" ]
 then
@@ -94,7 +107,11 @@ then
     chmod a+x "$HOME/bin/repo"
 fi
 
+# include bin in path
 export PATH=${PATH}:$HOME/bin
+
+# disable colors so build uses jenkins color fix
+export BUILD_WITH_COLORS=0
 
 #CCACHE
 export CCACHE_DIR=/mnt/ccache-jenkins/ccache
@@ -108,8 +125,7 @@ then
     fi
 fi
 
-export BUILD_WITH_COLORS=0
-
+# initizize build environment
 if [ "$REMOTE" = "SlimRoms" ]
 then
     repo init -u $PROTO://github.com/$REMOTE/platform_manifest.git -b "$BRANCH"
@@ -119,12 +135,15 @@ else
     check_result "repo init failed."
 fi
 
+# repo sync
 if [ "$SYNC" = "true" ]
 then
     repo sync -d -c > /dev/null
     check_result "repo sync failed"
     echo "repo sync complete."
 fi
+
+# cherry pick
 if [ "$CHERRY_PICK" = "true" ]
 then
     chmod a+x $WORKSPACE/cherry-pick.sh
@@ -138,7 +157,8 @@ source build/envsetup.sh &> /dev/null
 lunch "$LUNCH"
 check_result "lunch failed"
 
-WORKSPACE=$WORKSPACE LUNCH=$LUNCH sh $WORKSPACE/scripts/buildlog.sh 2>&1
+# build log, doesn't really work
+#WORKSPACE=$WORKSPACE LUNCH=$LUNCH sh $WORKSPACE/scripts/buildlog.sh 2>&1
 
 # Clean up
 LAST_CLEAN=0
@@ -164,6 +184,7 @@ check_result "Build failed."
 # remove common folder since its not really common
 rm -rf out/target/common
 
+# variables
 MODVERSION=`sed -n -e'/ro\.modversion/s/^.*=//p' $OUT/system/build.prop`
 DEVICE=`sed -n -e'/ro\.product\.device/s/^.*=//p' $OUT/system/build.prop`
 if [ -z "$DEVICE" ]
@@ -172,6 +193,7 @@ then
     exit 1
 fi
 
+# save manifest
 if [ -d ".repo/local_manifests" ]
 then
     TEMPSTASH=$(mktemp -d)
@@ -185,52 +207,65 @@ then
     rmdir "$TEMPSTASH"
 fi
 
+# end date and diff time
 END=$(date +%s)
 DIFF=$(( $END - $START ))
 
-#for f in $(ls "$OUT"/*.zip*)
-#do
-#    if [[ $(basename "$f") == *"ota"* ]]
-#    then
-#        continue
-#    fi
-#    cp "$f" "$WORKSPACE"/archive/$(basename "$f")
-#done
+# archive recovery
 if [ -f "$OUT/recovery.img" ]
 then
     cp "$OUT/recovery.img" "$WORKSPACE/archive"
 fi
 
+# archive build.prop
 cp "$OUT/system/build.prop" "$WORKSPACE/archive/build.prop"
 
-# upload to goo.im
-if [ "$UPLOADER" = "goo.im" ]
+# UPLOAD
+if [ "$BUILD_TYPE" = "NIGHTLY" ]
 then
-    chmod a+x $WORKSPACE/scripts/upload-goo.sh
-    $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
-    $WORKSPACE/scripts/upload-goo.sh "upload" "$OUT/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE"
-    $WORKSPACE/scripts/upload-goo.sh "upload" "$OUT/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE"
-    LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
-    MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip.md5sum"
-# upload to dropbox
-elif [ "$UPLOADER" = "dropbox" ]
-then
-    $WORKSPACE/scripts/dropbox_uploader.sh upload "$OUT/$MODVERSION.zip" "$REMOTE/$DEVICE/$MODVERSION.zip"
-    $WORKSPACE/scripts/dropbox_uploader.sh upload "$OUT/$MODVERSION.zip.md5sum" "$REMOTE/$DEVICE/$MODVERSION.zip.md5sum"
-    LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "$REMOTE/$DEVICE/$MODVERSION.zip")
-    MD5LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "$REMOTE/$DEVICE/$MODVERSION.zip.md5sum")
-elif [ "$UPLOADER" = "drive" ]
-then
-    LINK=$(google-drive_uploader.sh "$OUT/$MODVERSION.zip")
-    MD5LINK=$(google-drive_uploader.sh "$OUT/$MODVERSION.zip.md5sum")
+    echo "
+        cd /home/FTP-shared/gmillz/$DEVICE/$BUILD_TYPE
+        put $OUT/$MODVERSION.zip
+        exit
+   " | sftp gmillz@teamhacklg.tk
+   LINK="ftp://teamhacklg.tk/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
+else
+    # upload to goo.im
+    if [ "$UPLOADER" = "goo.im" ]
+    then
+        chmod a+x $WORKSPACE/scripts/upload-goo.sh
+        $WORKSPACE/scripts/upload-goo.sh "mkdir" "$DEVICE/$BUILD_TYPE"
+        $WORKSPACE/scripts/upload-goo.sh "upload" "$OUT/$MODVERSION.zip" "$DEVICE/$BUILD_TYPE"
+        $WORKSPACE/scripts/upload-goo.sh "upload" "$OUT/$MODVERSION.zip.md5sum" "$DEVICE/$BUILD_TYPE"
+        LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip"
+        MD5LINK="http://goo.im/devs/gmillz/$DEVICE/$BUILD_TYPE/$MODVERSION.zip.md5sum"
+    # upload to dropbox
+    elif [ "$UPLOADER" = "dropbox" ]
+    then
+        $WORKSPACE/scripts/dropbox_uploader.sh upload "$OUT/$MODVERSION.zip" "$REMOTE/$DEVICE/$MODVERSION.zip"
+        $WORKSPACE/scripts/dropbox_uploader.sh upload "$OUT/$MODVERSION.zip.md5sum" "$REMOTE/$DEVICE/$MODVERSION.zip.md5sum"
+        LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "$REMOTE/$DEVICE/$MODVERSION.zip")
+        MD5LINK=$($WORKSPACE/scripts/dropbox_uploader.sh share "$REMOTE/$DEVICE/$MODVERSION.zip.md5sum")
+    # upload to drive
+    elif [ "$UPLOADER" = "drive" ]
+    then
+        LINK=$(google-drive_uploader.sh "$OUT/$MODVERSION.zip")
+        MD5LINK=$(google-drive_uploader.sh "$OUT/$MODVERSION.zip.md5sum")
+    fi
 fi
 
+# the md5 of the build
 MD5=$(cat "$SOURCE/out/target/product/$DEVICE/$MODVERSION.zip.md5sum")
-echo "$DEVICE took $DIFF to build"
+
+# echo the amount of time the build took
+echo "$DEVICE took $DIFF seconds to build"
+# echo the link if uploaded else echo the path
 if [ -z "$UPLOADER" ]
 then
     echo "Build: $OUT/$MODVERSION.zip"
 else
     echo "Build: $LINK"
 fi
+
+# echo MD5
 echo "MD5: $MD5"
