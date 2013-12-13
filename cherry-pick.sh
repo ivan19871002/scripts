@@ -52,7 +52,10 @@ then
       PACK=$(echo "$PAC" | cut -d'_' -f2,3,4,5 | cut -d' ' -f1 | tr "_" "/")
     elif [[ $(echo "$PAC" | cut -d'_' -f1) == "platform" ]]
 	then
-      PACK=$(echo "$PAC" | cut -d' ' -f1 | cu -d'_' -f2 | tr "_" "/")
+      PACK=$(echo "$PAC" | cut -d' ' -f1 | cut -d'_' -f2 | tr "_" "/")
+    elif [[ $(echo "$PAC" | cut -d'_' -f1) == "proprietary" ]]
+    then
+        PACK=$(echo "$PAC" | cut -f'_' -f2-5 | cut -d' ' -f1 | tr "_" "/")
     elif [ "$PAC" = "platform_manifest" ]
 	then
       PACK="$PAC"
