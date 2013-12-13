@@ -11,13 +11,13 @@ function changeExists {
   done
 }
 
-if [ -f "/home/gmillz/bin/cherry-picks" ]
+if [ -f "$HOME/scripts/cherry-picks" ]
 then
   TYPE="$1"
   IFS_OLD="$IFS"
   IFS=$'\n'
 
-  for line in $(cat "/home/gmillz/bin/cherry-picks")
+  for line in $(cat "$HOME/scripts/cherry-picks")
   do
     if [ "$line" = "" ]
 	then
