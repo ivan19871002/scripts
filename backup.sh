@@ -5,7 +5,8 @@ host="75.65.80.141"
 port="2212"
 date=$(date +%Y%m%d)
 backup_folder="/Backups"
-backup_file="$backup_folder/gmillz-chromebook_backup_$date.tar.gz"
+pc_name=$(hostname)
+backup_file="$backup_folder/"$pc_name"_backup_$date.tar.gz"
 backup=$(basename "$backup_file")
 server_location="/mnt/Media/Backups"
 should_upload=false
@@ -17,28 +18,37 @@ backup_exclude=("/proc/*"
 "/Backups/*"
 "/home/gmillz/rpmbuild/*" )
 
-tar_args="-cvpf $backup_file '/*'"
+tar_args="-cvpf $backup_file /*"
 
 for exclude in "${backup_exclude[@]}"
 do
     tar_args="$tar_args --exclude=$exclude"
 done
 
-sudo tar "$tar_args"
+if [ -f "$backup_file" ]
+then
+    sudo rm "$backup_file"
+fi
+
+echo $tar_args
+sudo tar $tar_args
+
+if [ ! -f "$backup_file" ]
+then
+    exit 1
+fi
 
 if sftp -P $port $user@$host <<< 'pwd' >/dev/null 2>&1
 then 
     should_upload=true
+else
+    exit 1
 fi
 
 if [ "$should_upload" = true ]
 then
     echo "Uploading..."
-    echo "
-        cd $server_location
-        put $backup_file
-        exit
-    " | sftp -P $port $user@$host
+    scp -P "$port" "$backup_file" $user@$host:"$server_location/$backup"
 fi
 
 server_md5=$(ssh $user@$host -p $port \"md5sum "$server_location/$backup"\" | awk '{print $1}')
