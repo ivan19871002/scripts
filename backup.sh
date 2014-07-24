@@ -52,7 +52,6 @@ else
     FILE=`basename $(ssh $USER@$HOST -p $PORT "ls $TEST")`
     if [ "$FILE" = "$BACKUP" ]
     then
-        sudo rm -f $BACKUP_FILE
         ssh $USER@$HOST -p $PORT "rm -f $SERVER_LOCATION/$BACKUP"
     fi
 fi
