@@ -1,57 +1,57 @@
 #!/bin/bash
 
-USER="media"
-HOST="75.65.80.141"
-PORT="2212"
-DATE=$(date +%Y%m%d)
-BACKUP_FOLDER="/Backups"
-BACKUP_FILE="$BACKUP_FOLDER/gmillz-chromebook_backup_$Date.tar.gz"
-BACKUP=`basename $BACKUP_FILE`
-SERVER_LOCATION="/mnt/Media/Backups"
-SHOULD_UPLOAD=false
+user="media"
+host="75.65.80.141"
+port="2212"
+date=$(date +%Y%m%d)
+backup_folder="/Backups"
+backup_file="$backup_folder/gmillz-chromebook_backup_$date.tar.gz"
+backup=`basename $backup_file`
+server_location="/mnt/Media/Backups"
+should_upload=false
 
-BACKUP_EXCLUDE=("/proc/*"
+backup_exclude=("/proc/*"
 "/sys/*"
 "/dev/*"
 "/tmp/*"
 "/Backups/*"
 "/home/gmillz/rpmbuild/*" )
 
-TAR_ARGS="-cvpf $BACKUP_FILE '/*'"
+tar_args="-cvpf $backup_file '/*'"
 
-for exclude in "${BACKUP_EXCLUDE[@]}"
+for exclude in "${backup_exclude[@]}"
 do
-    TAR_ARGS="$TAR_ARGS --exclude=$exclude"
+    tar_args="$tar_args --exclude=$exclude"
 done
 
-sudo tar "$TAR_ARGS"
+sudo tar "$tar_args"
 
-if sftp -P $PORT $USER@$HOST <<< 'pwd' >/dev/null 2>&1
+if sftp -P $port $user@$host <<< 'pwd' >/dev/null 2>&1
 then 
-    SHOULD_UPLOAD=true
+    should_upload=true
 fi
 
-if [ "$SHOULD_UPLOAD" = true ]
+if [ "$should_upload" = true ]
 then
     echo "Uploading..."
     echo "
-        cd $SERVER_LOCATION
-        put $BACKUP_FILE
+        cd $server_location
+        put $backup_file
         exit
-    " | sftp -P $PORT $USER@$HOST
+    " | sftp -P $port $user@$host
 fi
 
-SERVER_MD5=`ssh $USER@$HOST -p $PORT \"md5sum $SERVER_LOCATION/$BACKUP\" | awk {print $1}`
-LOCAL_MD5=`md5sum $BACKUP_FILE | awk {print $1}`
+server_md5=`ssh $user@$host -p $port \"md5sum $server_location/$backup\" | awk {print $1}`
+local_md5=`md5sum $backup_file | awk {print $1}`
 
-if [ "$SERVER_MD5" = "$LOCAL_MD5" ]
+if [ "$server_md5" = "$local_md5" ]
 then
-    sudo rm -f $BACKUP_FILE
+    sudo rm -f $backup_file
     echo "Backup complete."
 else
-    FILE=`basename $(ssh $USER@$HOST -p $PORT "ls $TEST")`
-    if [ "$FILE" = "$BACKUP" ]
+    file=`basename $(ssh $user@$host -p $port "ls $server_location/$backup")`
+    if [ "$file" = "$backup" ]
     then
-        ssh $USER@$HOST -p $PORT "rm -f $SERVER_LOCATION/$BACKUP"
+        ssh $user@$host -p $port "rm -f $server_location/$backup"
     fi
 fi
