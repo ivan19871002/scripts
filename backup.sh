@@ -1,13 +1,13 @@
 #!/bin/bash
 
-USER=media
-HOST=75.65.80.141
-PORT=2212
+USER="media"
+HOST="75.65.80.141"
+PORT="2212"
 DATE=$(date +%Y%m%d)
-BACKUP_FOLDER=/Backups
+BACKUP_FOLDER="/Backups"
 BACKUP_FILE="$BACKUP_FOLDER/gmillz-chromebook_backup_$Date.tar.gz"
 BACKUP=`basename $BACKUP_FILE`
-SERVER_LOCATION=/mnt/Media/Backups
+SERVER_LOCATION="/mnt/Media/Backups"
 SHOULD_UPLOAD=false
 
 BACKUP_EXCLUDE=("/proc/*"
