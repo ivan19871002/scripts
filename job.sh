@@ -12,6 +12,5 @@ fi
 cd scripts
 git reset --hard
 git pull -s resolve
-chmod a+x ./build.sh
 
 exec ./build.sh
