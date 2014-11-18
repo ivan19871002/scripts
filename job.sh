@@ -4,15 +4,14 @@ cd "$WORKSPACE"
 mkdir -p android
 export WORKSPACE="$PWD"
 
-if [ -d scripts ]
+if [ ! -d scripts ]
 then
-  rm -rf scripts
+  git clone git://github.com/gmillz/scripts.git
 fi
 
-git clone git://github.com/gmillz/scripts.git
-
 cd scripts
-
+git reset --hard
+git pull -s resolve
 chmox a+x ./build.sh
 
 exec ./build.sh
