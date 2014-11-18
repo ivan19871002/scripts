@@ -13,4 +13,6 @@ git clone git://github.com/gmillz/scripts.git
 
 cd scripts
 
+chmox a+x ./build.sh
+
 exec ./build.sh
