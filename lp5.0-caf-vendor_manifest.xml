@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <project name="TheLoonyBin/proprietary_vendor_sony" path="vendor/sony" remote="github" revision="lp5.0" />
+</manifest>
