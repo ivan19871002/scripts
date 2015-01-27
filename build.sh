@@ -131,14 +131,14 @@ else
     check_result "repo init failed."
 fi
 
-VENDOR_MANIFEST="$BRANCH"-vendor_manifest.xml
+VENDOR_MANIFEST="$BRANCH.xml"
 if [ -f "$WORKSPACE/$VENDOR_MANIFEST" ]
 then
     if [ ! -d ".repo/local_manifests" ]
     then
         mkdir -p ".repo/local_manifests"
     fi
-    cp "$WORKSPACE/$VENDOR_MANIFEST" ".repo/local_manifests/$VENDOR_MANIFEST"
+    cp "$WORKSPACE/$VENDOR_MANIFEST" ".repo/local_manifests/vendor_manifest.xml"
 fi
 
 # repo sync
