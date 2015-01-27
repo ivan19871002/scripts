@@ -10,7 +10,7 @@ then
 fi
 
 cd scripts
-#git reset --hard
-#git pull -s resolve
+git reset --hard
+git pull -s resolve
 
 exec ./build.sh
