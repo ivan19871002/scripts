@@ -131,7 +131,7 @@ else
     check_result "repo init failed."
 fi
 
-VENDOR_MANIFEST="$BRANCH-vendor_manifest.xml"
+VENDOR_MANIFEST="$BRANCH"-vendor_manifest.xml
 if [ -f "$WORKSPACE/$VENDOR_MANIFEST" ]
 then
     if [ ! -d ".repo/local_manifests" ]
