@@ -47,7 +47,7 @@ then
 fi
 if [ -z "$CLEAN" ]
 then
-    CLEAN="false"
+    CLEAN="none"
 fi
 if [ -z "$SYNC" ]
 then
